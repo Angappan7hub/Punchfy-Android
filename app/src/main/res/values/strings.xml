@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">mqtt</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="no_address_found">Sorry, no address found</string>
+    <string name="no_location_detected">no location detected</string>
+    <string name="service_not_available">Sorry, the service is not available</string>
+    <string name="invalid_lat_long_used">Invalid latitude or longitude used</string>
+    <string name="address_found">Address found</string>
+    <string name="check_out_time">Check Out Time</string>
+
+    <string name="navigation_drawer_open">Drawer Open</string>
+    <string name="navigation_drawer_close">Drawer Closed</string>
+</resources>
