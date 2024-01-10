@@ -183,11 +183,11 @@ public class MarkAttendanceFragment extends Fragment {
             }
         };
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
-        String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
-        String clientId = "android-client";
-        mqttHandler=new MqttHandler(getActivity());
-        mqttHandler.connect(serverUri,clientId);
-        mqttHandler.subscribe("mqtt/ack");
+//        String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
+//        String clientId = "android-client";
+//        mqttHandler=new MqttHandler(getActivity());
+//        mqttHandler.connect(serverUri,clientId);
+//        mqttHandler.subscribe("mqtt/ack");
         permissionsDelegate = new PermissionsDelegate(getActivity());
         hasPermission = permissionsDelegate.hasPermissions();
         if (hasPermission) {
@@ -417,6 +417,7 @@ public class MarkAttendanceFragment extends Fragment {
                 strCurrentLocation = strLocation;
                 if(mainViewModel.sampleData!=null){
                     currentAddress.setText(mainViewModel.sampleData.address);
+                    progressBar.setVisibility(View.GONE);
                 }
                 else {
                     if (gps_enabled && connected) {
@@ -433,8 +434,15 @@ public class MarkAttendanceFragment extends Fragment {
         mViewModel.getCachedLocation().observe(getViewLifecycleOwner(), new Observer<Location>() {
             @Override
             public void onChanged(Location location) {
-                currentLocation = location;
-                updateAddressUI(currentLocation);
+
+                if(mainViewModel.sampleData!=null){
+                    currentAddress.setText(mainViewModel.sampleData.address);
+                   progressBar.setVisibility(View.GONE);
+                }
+                else {
+                    currentLocation = location;
+                    updateAddressUI(currentLocation);
+                }
             }
         });
     }
@@ -623,7 +631,11 @@ public class MarkAttendanceFragment extends Fragment {
                 System.out.print("JsonData "+jsonData1);
                 MqttMessage message = new MqttMessage(json.getBytes());
                 message.setQos(1);
-                mqttHandler.publish("mqtt/test", String.valueOf(message));
+                String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
+        String clientId = "android-client";
+        mqttHandler=new MqttHandler();
+        mqttHandler.connect(serverUri,clientId);
+        mqttHandler.publish("mqtt/test", String.valueOf(message));
 //                if(mViewModel.ackModel!=null){
 //                    String a=mViewModel.ackModel.response;
 //                        if (jsonData != null) {

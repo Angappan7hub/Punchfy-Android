@@ -2,6 +2,7 @@ package com.example.mqtt;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Switch;
 
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
@@ -31,9 +32,9 @@ public class MqttHandler {
     public MainViewModel mainViewModel;
     public  SessionManager sessionManager;
     public Context context;
-public MqttHandler(){
+    public MqttHandler(){
 
-}
+    }
 
     public MqttHandler(ViewModelStoreOwner owner) {
         if (owner instanceof Context) {
@@ -93,81 +94,11 @@ public MqttHandler(){
                 @Override
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
                     String messagePayload=new String( message.getPayload());
-                    Log.v(TAG,"Payload size:"+messagePayload);
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.v(TAG,token.toString());
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void disconnect() {
-        try {
-            client.disconnect();
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void publish(String topic, String message) {
-        try {
-            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
-            client.publish(topic, mqttMessage);
-//            client = mqtt.Client()
-//            client.connect("localhost",1883,60)
-//            client.publish("topic/test", "Hello world!");
-//            client.disconnect();
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.v(TAG,cause.getLocalizedMessage());
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    String messagePayload=new String( message.getPayload());
-                    Log.v(TAG,"Payload size:"+messagePayload);
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.v(TAG,token.toString());
-                    Log.d(TAG,token.toString());
-
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void subscribe(String topic) {
-        try {
-            //MqttConnectOptions connOpts = new MqttConnectOptions();
-           // connOpts.setCleanSession(true);
-           // client.connect();
-            client.subscribe(topic,1);
-            client.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    System.out.println(message);
-                   // mainViewModel = new ViewModelProvider().get(MainViewModel.class);
-                    Log.d("tag","message>>" + new String(message.getPayload()));
-                    Log.d("tag","topic>>" + topic);
-                    Log.i("tag","message>>" + new String(message.getPayload()));
-                    Log.i("tag","topic>>" + topic);
-                    String messagePayload=new String( message.getPayload());
-                    if(topic.compareTo("mqtt/ack")==0){
+                    String topics=topic;
+                    String[] parts = topics.split("/");
+                    // Get the last element from the array
+                    String lastWord = parts[parts.length - 1];
+                    if(lastWord.compareTo("ack")==0){
                         if(!messagePayload.isEmpty()) {
                             Gson gson = new Gson();
                             AckModel ack = gson.fromJson(messagePayload, AckModel.class);
@@ -199,16 +130,123 @@ public MqttHandler(){
 
                         }
                     }
-                    Log.v(TAG,"Sub Top Msg:"+messagePayload);
-                   // parseMqttMessage(new String(message.getPayload()));
+                    Log.v(TAG,"Payload size:"+messagePayload);
 
                 }
 
                 @Override
                 public void deliveryComplete(IMqttDeliveryToken token) {
-
+                    Log.v(TAG,token.toString());
                 }
             });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            client.disconnect();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void publish(String topic, String message) {
+        try {
+            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+            client.publish(topic, mqttMessage);
+//            client = mqtt.Client()
+//            client.connect("localhost",1883,60)
+//            client.publish("topic/test", "Hello world!");
+//            client.disconnect();
+//            client.setCallback(new MqttCallback() {
+//                @Override
+//                public void connectionLost(Throwable cause) {
+//                    Log.v(TAG,cause.getLocalizedMessage());
+//                }
+//
+//                @Override
+//                public void messageArrived(String topic, MqttMessage message) throws Exception {
+//                    String messagePayload=new String( message.getPayload());
+//                    Log.v(TAG,"Payload size:"+messagePayload);
+//                }
+//
+//                @Override
+//                public void deliveryComplete(IMqttDeliveryToken token) {
+//                    Log.v(TAG,token.toString());
+//                    Log.d(TAG,token.toString());
+//
+//                }
+//            });
+
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void subscribe(String topic) {
+        try {
+            //MqttConnectOptions connOpts = new MqttConnectOptions();
+           // connOpts.setCleanSession(true);
+           // client.connect();
+            client.subscribe(topic,1);
+//            client.setCallback(new MqttCallback() {
+//                @Override
+//                public void connectionLost(Throwable cause) {
+//                }
+//
+//                @Override
+//                public void messageArrived(String topic, MqttMessage message) throws Exception {
+//                    System.out.println(message);
+//                   // mainViewModel = new ViewModelProvider().get(MainViewModel.class);
+//                    Log.d("tag","message>>" + new String(message.getPayload()));
+//                    Log.d("tag","topic>>" + topic);
+//                    Log.i("tag","message>>" + new String(message.getPayload()));
+//                    Log.i("tag","topic>>" + topic);
+//                    String messagePayload=new String( message.getPayload());
+//                    if(topic.compareTo("mqtt/ack")==0){
+//                        if(!messagePayload.isEmpty()) {
+//                            Gson gson = new Gson();
+//                            AckModel ack = gson.fromJson(messagePayload, AckModel.class);
+//
+//                           // mainViewModel.ackModel = ack;
+//                           // AckModel ackModelLists = mainViewModel.ackModel;
+//                            sessionManager= new SessionManager(context);
+//                            List<SampleData> jsonData= sessionManager.getData();
+//                            Gson gson1=new Gson();
+//                            String jsonData1=gson1.toJson(jsonData);
+//
+//                            // Retrieve the stored string data
+//                            //    String jsonData = preferences.getString("data", "");
+//                            // SharedPreferences preferences = getContext().getSharedPreferences(context.getPackageName(),
+//                            //        Context.MODE_PRIVATE);
+//                            //String jsonData = preferences.getString("data", "");
+//                            Log.i("json",jsonData1);
+//                            System.out.print("JsonData "+jsonData1);
+//                            if(ack!=null){
+//                                String a=ack.response;
+//                                if (jsonData != null && jsonData.size()!=0) {
+//                                    for (int i = 0; i <jsonData.size(); i++) {
+//                                        if (jsonData.get(i).ack.compareTo(a) == 0) {
+//                                            sessionManager.clearSingleSampleData(jsonData.get(i));
+//                                        }
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    }
+//                    Log.v(TAG,"Sub Top Msg:"+messagePayload);
+//                   // parseMqttMessage(new String(message.getPayload()));
+//
+//                }
+//
+//                @Override
+//                public void deliveryComplete(IMqttDeliveryToken token) {
+//
+//                }
+//            });
 
     } catch (MqttException e) {
             e.printStackTrace();

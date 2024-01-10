@@ -74,6 +74,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
+        String clientId = "android-client123";
+        mqttHandler=new MqttHandler(this);
+        mqttHandler.connect(serverUri,clientId);
+        mqttHandler.subscribe("mqtt/ack");
         mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         toolbar = findViewById(R.id.activity_main_toolbar);
 
