@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+tools:context="com.arasoftwares.tripcontrol.MainActivity">
+
+<!--<item-->
+<!--    android:id="@+id/log_out"-->
+<!--    android:orderInCategory="100"-->
+<!--    android:icon="@drawable/ic_action_logout"-->
+<!--    android:title="Logout"-->
+<!--    app:showAsAction="ifRoom"-->
+<!--    />-->
+
+
+<!--    <item-->
+<!--        android:id="@+id/notification"-->
+<!--        android:title="Notification"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        android:icon="@drawable/baseline_notifications_active_24"/>-->
+
+
+
+</menu>
