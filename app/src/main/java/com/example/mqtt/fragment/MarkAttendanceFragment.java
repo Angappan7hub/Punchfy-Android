@@ -2,6 +2,7 @@ package com.example.mqtt.fragment;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.app.Activity.RESULT_OK;
+import static com.example.mqtt.MainActivity.generateClientId;
 import static com.example.mqtt.dependency.AppConstants.PERMISSIONS_REQUEST_LOCATION;
 import static java.text.DateFormat.getDateInstance;
 
@@ -65,7 +66,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.mqtt.BuildConfig;
+
 import com.example.mqtt.MainActivity;
 import com.example.mqtt.MqttHandler;
 import com.example.mqtt.R;
@@ -81,6 +82,7 @@ import com.example.mqtt.model.UserInfo;
 import com.google.android.gms.common.api.Status;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
+import com.mikhaellopez.circularimageview.BuildConfig;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -353,7 +355,7 @@ public class MarkAttendanceFragment extends Fragment {
 //                    saveSession(branch);
 //                    String b = branch.branchCode;
 //                    branchName.setText(branch.branchNme);
-//                }
+//                },,,,
 //            }
 //        });
     }
@@ -632,7 +634,8 @@ public class MarkAttendanceFragment extends Fragment {
                 MqttMessage message = new MqttMessage(json.getBytes());
                 message.setQos(1);
                 String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
-        String clientId = "android-client";
+                String clientId = generateClientId();
+      //  String clientId = "android-client";
         mqttHandler=new MqttHandler();
         mqttHandler.connect(serverUri,clientId);
         mqttHandler.publish("mqtt/test", String.valueOf(message));

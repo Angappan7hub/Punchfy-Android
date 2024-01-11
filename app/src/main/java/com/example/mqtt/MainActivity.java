@@ -28,6 +28,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -56,6 +57,7 @@ import com.google.gson.Gson;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.FormatFlagsConversionMismatchException;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     DrawerLayout drawerLayout;
@@ -75,7 +77,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         String serverUri = "tcp://164.52.203.123:1883";  // Replace with your MQTT broker URL
-        String clientId = "android-client123";
+        String clientId = generateClientId();
+
+        //String clientId = "android-client123";
         mqttHandler=new MqttHandler(this);
         mqttHandler.connect(serverUri,clientId);
         mqttHandler.subscribe("mqtt/ack");
@@ -183,6 +187,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    public static String generateClientId() {
+        // Combine device information and a random UUID to create a unique client ID
+        String deviceId = getDevId();
+        String uniqueId = UUID.randomUUID().toString();
+
+        return deviceId + "-" + uniqueId;
+    }
+    private static String getDevId() {
+        // Use a combination of device-specific information to create a unique identifier
+//        String manufacturer = Build.MANUFACTURER;
+//        String model = Build.MODEL;
+        String serial = Build.SERIAL;
+
+        return serial;
+    }
 
     @Override
     protected void onResume() {
@@ -396,6 +415,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navController.navigate(R.id.markAttendanceFragment);
         } else if (id == R.id.nav_log) {
             navController.navigate(R.id.missingLogsFragment);
+        }
+        else if (id == R.id.nav_his) {
+            navController.navigate(R.id.historyFragment);
         }
 
 

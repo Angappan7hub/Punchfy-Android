@@ -9,6 +9,10 @@
             android:id="@+id/nav_log"
             android:icon="@drawable/ic_log"
             android:title="Missing Logs"/>
+        <item
+            android:id="@+id/nav_his"
+            android:icon="@drawable/ic_log"
+            android:title="History"/>
 
 
     </group>

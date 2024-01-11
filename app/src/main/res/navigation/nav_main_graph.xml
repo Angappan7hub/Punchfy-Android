@@ -16,4 +16,9 @@
         android:name="com.example.mqtt.fragment.MissingLogsFragment"
         android:label="fragment_missing_logs"
         tools:layout="@layout/fragment_missing_logs" />
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.mqtt.fragment.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" />
 </navigation>
