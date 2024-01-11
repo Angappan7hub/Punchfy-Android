@@ -188,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public static String generateClientId() {
-
         // Combine device information and a random UUID to create a unique client ID
         String deviceId = getDevId();
         String uniqueId = UUID.randomUUID().toString();
