@@ -6,8 +6,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 
+import com.example.mqtt.ara.model.Branch;
+import com.example.mqtt.ara.model.EmpLog;
 import com.example.mqtt.ara.model.LoggedInUser;
 import com.example.mqtt.ara.model.LoginRequest;
+import com.example.mqtt.ara.model.PostEmpLog;
 import com.example.mqtt.ara.service.WebService;
 import com.example.mqtt.dependency.FactoryMethods;
 import com.example.mqtt.dependency.Result;
@@ -115,19 +118,19 @@ public class UserRepository {
         return liveData;
     }
 
-    public LiveData<Result<ResponseBody>> getEmpLogs(String fromDate,String toDate) {
-        final MutableLiveData<Result<ResponseBody>> liveData = new MutableLiveData<>();
+    public LiveData<Result<List<EmpLog>>> getEmpLogs(String fromDate,String toDate) {
+        final MutableLiveData<Result<List<EmpLog>>> liveData = new MutableLiveData<>();
 
         webService.getEmpLogs(fromDate,toDate)
-                .enqueue(new Callback<ResponseBody>() {
+                .enqueue(new Callback<List<EmpLog>>() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Result result = new Result<ResponseBody>();
+                    public void onResponse(Call<List<EmpLog>> call, Response<List<EmpLog>> response) {
+                        Result result = new Result<List<EmpLog>>();
                         if (response.isSuccessful()) {
-                            ResponseBody user = response.body();
+                            List<EmpLog> user = response.body();
 
                             // saveSession(context);
-                            liveData.setValue(new Result<ResponseBody>(user));
+                            liveData.setValue(new Result<List<EmpLog>>(user));
                         } else {
                             try {
                                 result.setErrorMessage(response.errorBody().string());
@@ -141,8 +144,80 @@ public class UserRepository {
                     }
 
                     @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Result result = new Result<ResponseBody>();
+                    public void onFailure(Call<List<EmpLog>> call, Throwable t) {
+                        Result result = new Result<List<EmpLog>>();
+                        result.setErrorMessage(t.getMessage());
+                        liveData.setValue(result);
+                    }
+                });
+        return liveData;
+    }
+
+
+
+     public LiveData<Result<Branch>> getBranch() {
+        final MutableLiveData<Result<Branch>> liveData = new MutableLiveData<>();
+
+        webService.getBranch()
+                .enqueue(new Callback<Branch>() {
+                    @Override
+                    public void onResponse(Call<Branch> call, Response<Branch> response) {
+                        Result result = new Result<Branch>();
+                        if (response.isSuccessful()) {
+                            Branch user = response.body();
+
+                            // saveSession(context);
+                            liveData.setValue(new Result<Branch>(user));
+                        } else {
+                            try {
+                                result.setErrorMessage(response.errorBody().string());
+                                liveData.setValue(result);
+                            } catch (Exception e) {
+                                result.setErrorMessage(e.getMessage());
+                                liveData.setValue(result);
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<Branch> call, Throwable t) {
+                        Result result = new Result<Branch>();
+                        result.setErrorMessage(t.getMessage());
+                        liveData.setValue(result);
+                    }
+                });
+        return liveData;
+    }
+
+    public LiveData<Result<EmpLog>> postEmpLog(PostEmpLog postEmpLog,long branchId) {
+        final MutableLiveData<Result<EmpLog>> liveData = new MutableLiveData<>();
+
+        webService.postEmpLog(postEmpLog, branchId)
+                .enqueue(new Callback<EmpLog>() {
+                    @Override
+                    public void onResponse(Call<EmpLog> call, Response<EmpLog> response) {
+                        Result result = new Result<EmpLog>();
+                        if (response.isSuccessful()) {
+                            EmpLog user = response.body();
+
+                            // saveSession(context);
+                            liveData.setValue(new Result<EmpLog>(user));
+                        } else {
+                            try {
+                                result.setErrorMessage(response.errorBody().string());
+                                liveData.setValue(result);
+                            } catch (Exception e) {
+                                result.setErrorMessage(e.getMessage());
+                                liveData.setValue(result);
+                            }
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<EmpLog> call, Throwable t) {
+                        Result result = new Result<EmpLog>();
                         result.setErrorMessage(t.getMessage());
                         liveData.setValue(result);
                     }

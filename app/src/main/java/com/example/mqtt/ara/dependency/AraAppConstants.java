@@ -17,6 +17,8 @@ public class AraAppConstants {
 //    static final String BASE_URL = "https://api.v3.aratask.arasoftwares.app/";
 
     //Local Url
+   // static final String BASE_URL = "http://164.052.203.123:8095/";
+   // http://10.0.2.2/
     static final String BASE_URL = "http://164.052.203.123:8095/";
 
     //live url

@@ -1,8 +1,11 @@
 package com.example.mqtt.ara.service;
 
 
+import com.example.mqtt.ara.model.Branch;
+import com.example.mqtt.ara.model.EmpLog;
 import com.example.mqtt.ara.model.LoggedInUser;
 import com.example.mqtt.ara.model.LoginRequest;
+import com.example.mqtt.ara.model.PostEmpLog;
 
 import java.util.List;
 
@@ -17,6 +20,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface WebService {
@@ -25,7 +29,15 @@ public interface WebService {
     Call<LoggedInUser> login(@Body LoginRequest loginRequest);
 
     @GET("empLogList")
-    Call<ResponseBody> getEmpLogs(@Query("startDate")String startDate,
-                                  @Query("toDate")String toDate);
+    Call<List<EmpLog>> getEmpLogs(@Query("startDate")String startDate,
+                                  @Query("endDate")String toDate);
+
+    @GET("branches/currentuser")
+    Call<Branch> getBranch();
+
+    @POST("empLog/{branchId}")
+    Call<EmpLog> postEmpLog(@Body PostEmpLog postEmpLog, @Path("branchId") long branchId);
+
+
 
 }

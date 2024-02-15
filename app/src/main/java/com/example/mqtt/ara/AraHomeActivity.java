@@ -12,6 +12,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -21,17 +22,22 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatCheckedTextView;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.mqtt.MainActivity;
 import com.example.mqtt.R;
+import com.example.mqtt.adapter.HistoryAdapter;
+import com.example.mqtt.adapter.PunchHistoryAdapter;
 import com.example.mqtt.ara.dependency.AraSessionManager;
 import com.example.mqtt.ara.dependency.FactoryMethods;
+import com.example.mqtt.ara.model.Branch;
+import com.example.mqtt.ara.model.EmpLog;
+import com.example.mqtt.ara.model.PostEmpLog;
+import com.example.mqtt.dependency.ItemChoiceListener;
 import com.example.mqtt.dependency.Result;
 import com.example.mqtt.dependency.UtilityMethods;
 import com.google.android.gms.common.api.ApiException;
@@ -46,6 +52,7 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -60,7 +67,7 @@ import java.util.Locale;
 
 import okhttp3.ResponseBody;
 
-public class AraHomeActivity extends AppCompatActivity {
+public class AraHomeActivity extends AppCompatActivity implements ItemChoiceListener {
 
 
     LocationRequest locationRequest;
@@ -84,6 +91,19 @@ public class AraHomeActivity extends AppCompatActivity {
 
     private static final String TAG = "AraHomeActivity";
 
+    PunchHistoryAdapter punchHistoryAdapter;
+
+    double latPt;
+    double lonPt;
+    double braLat;
+    double braLong;
+
+    boolean workType;
+
+    private Handler handler;
+    private Runnable updateTimeRunnable;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,15 +114,67 @@ public class AraHomeActivity extends AppCompatActivity {
 
         viewReferFields();
 
+        handler = new Handler();
+        updateTimeRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateDateTime();
+                // Repeat the update every second (1000 milliseconds)
+                handler.postDelayed(this, 1000);
+            }
+        };
+        Date currentDate = new Date();
+
+        // Format the date and time using SimpleDateFormat
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String formattedDateTime = dateFormat.format(currentDate);
+        dateText.setText(formattedDateTime);
+
         LocationValue();
 
         next();
 
         LocationCall();
 
+        getBranch();
+
         setLogs();
 
         setListener();
+
+    }
+
+
+    private void updateDateTime() {
+        // Get the current date and time
+        Date currentDate = new Date();
+
+        // Format the date and time using SimpleDateFormat
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String formattedDateTime = dateFormat.format(currentDate);
+
+        // Set the formatted date and time to the TextView
+        dateText.setText(formattedDateTime);
+    }
+
+
+
+
+    private void getBranch() {
+        AraSessionManager araSessionManager=new AraSessionManager(this);
+        String token=araSessionManager.getUserInfo().token;
+
+
+        FactoryMethods.getUserRepository(token).getBranch().observe(this, new Observer<Result<Branch>>() {
+            @Override
+            public void onChanged(Result<Branch> branchResult) {
+                if(branchResult.isSuccess()){
+                    Branch branch=branchResult.getData();
+                    braLat=branch.lat;
+                    braLong=branch.lon;
+                }
+            }
+        });
 
     }
 
@@ -111,6 +183,7 @@ public class AraHomeActivity extends AppCompatActivity {
         punchCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                workType=false;
                 proceedPunch();
             }
         });
@@ -118,9 +191,11 @@ public class AraHomeActivity extends AppCompatActivity {
         wfHomePunchCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                workType=true;
                 proceedWFHomePunch();
             }
         });
+
 
         fromDateText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,10 +213,75 @@ public class AraHomeActivity extends AppCompatActivity {
     }
 
     private void proceedWFHomePunch() {
+       postLog(latPt,lonPt);
 
     }
 
     private void proceedPunch() {
+        double a=latPt;
+        double b=lonPt;
+        double c=a;
+        double d=b;
+        LatLng latLngA = new LatLng(braLat, braLong);
+                    LatLng latLngB = new LatLng(latPt, lonPt);
+                    Location locationA = new Location("point A");
+                    locationA.setLatitude(latLngA.latitude);
+                    locationA.setLongitude(latLngA.longitude);
+                    Location locationB = new Location("point B");
+                    locationB.setLatitude(latLngB.latitude);
+                    locationB.setLongitude(latLngB.longitude);
+                    double distanceMeter = locationA.distanceTo(locationB);
+                    int meter = (int) distanceMeter;
+
+                    if (meter > 100) {
+                        Toast.makeText(getApplicationContext(), "Location Miss Match, You are not in Branch Location", Toast.LENGTH_LONG).show();
+                        doOnLocationPermission();
+                        return;
+                    }
+                    else{
+                        postLog(latPt,lonPt);
+                    }
+
+
+    }
+
+    private void postLog(double latPt, double lonPt) {
+        AraSessionManager araSessionManager=new AraSessionManager(this);
+        String token=araSessionManager.getUserInfo().token;
+        long branchId=araSessionManager.getUserInfo().branchId;
+
+        PostEmpLog postEmpLog=new PostEmpLog();
+        postEmpLog.branchId=branchId;
+        if(workType) {
+            postEmpLog.attendanceType = 1;
+        }
+        else {
+            postEmpLog.attendanceType = 0;
+        }
+        postEmpLog.longitude= String.valueOf(lonPt);
+        postEmpLog.latitude= String.valueOf(latPt);
+        postEmpLog.address=locationText.getText().toString();
+        postEmpLog.imageUrlId=0;
+        Date currentDate = new Date();
+
+        // Define the desired date and time format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+
+        // Format the current date and time using the formatter
+        String formattedDateTime = dateFormat.format(currentDate);
+        postEmpLog.time=formattedDateTime;
+
+        FactoryMethods.getUserRepository(token).postEmpLog(postEmpLog,branchId).observe(this, new Observer<Result<EmpLog>>() {
+            @Override
+            public void onChanged(Result<EmpLog> empLogResult) {
+                if(empLogResult.isSuccess()){
+                    Toast.makeText(AraHomeActivity.this, "Employee Log Posted Successfully", Toast.LENGTH_SHORT).show();
+                    setLogs();
+                }
+            }
+        });
+
+
     }
 
     private void setLogs() {
@@ -154,16 +294,23 @@ public class AraHomeActivity extends AppCompatActivity {
         // Format the date to the desired format (yyyy-MM-dd)
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String formattedDate = dateFormat.format(date);
-        FactoryMethods.getUserRepository(token).getEmpLogs(formattedDate,formattedDate).observe(this, new Observer<Result<ResponseBody>>() {
+        FactoryMethods.getUserRepository(token).getEmpLogs(formattedDate,formattedDate).observe(this, new Observer<Result<List<EmpLog>>>() {
             @Override
-            public void onChanged(Result<ResponseBody> responseBodyResult) {
-                if(responseBodyResult.isSuccess()){
-                    Toast.makeText(getApplicationContext(),responseBodyResult.getData().toString(),Toast.LENGTH_SHORT).show();
+            public void onChanged(Result<List<EmpLog>> listResult) {
+                if(listResult.isSuccess()){
+                   List<EmpLog> empLogs=listResult.getData();
+                   updateRecyclerView(empLogs);
                 }else{
-                    Toast.makeText(getApplicationContext(),responseBodyResult.getErrorMessage(),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),listResult.getErrorMessage(),Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void updateRecyclerView(List<EmpLog> empLogs) {
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        punchHistoryAdapter = new PunchHistoryAdapter(this, empLogs, this);
+        recyclerView.setAdapter(punchHistoryAdapter);
     }
 
     private void viewReferFields() {
@@ -175,21 +322,30 @@ public class AraHomeActivity extends AppCompatActivity {
         punchCard=findViewById(R.id.act_ara_home_punch_card);
         wfHomePunchCard=findViewById(R.id.act_ara_home_wfh_punch_card);
 
+        Date currentDate = new Date();
 
-        LocalDateTime now = null;
-        DateTimeFormatter formatter = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            now = LocalDateTime.now();
-            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            String formattedDateTime = now.format(formatter);
-            dateText.setText(formattedDateTime);
-        }
+        // Define the desired date and time format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        // Format the current date and time using the formatter
+        String formattedDateTime = dateFormat.format(currentDate);
+        dateText.setText(formattedDateTime);
+
+//        LocalDateTime now = null;
+//        DateTimeFormatter formatter = null;
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+//            now = LocalDateTime.now();
+//            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//            String formattedDateTime = now.format(formatter);
+//            dateText.setText(formattedDateTime);
+//        }
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        handler.post(updateTimeRunnable);
         if (requestingLocationUpdates) {
             startLocationUpdates();
         }
@@ -310,9 +466,12 @@ public class AraHomeActivity extends AppCompatActivity {
                 }
                 for (Location location : locationResult.getLocations()) {
 
-                    Toast.makeText(getApplicationContext(), String.valueOf(location.getLongitude()), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "Long:"+String.valueOf(location.getLongitude()), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "Lat:"+String.valueOf(location.getLatitude()), Toast.LENGTH_SHORT).show();
                     double latitude = location.getLatitude();
                     double longitude = location.getLongitude();
+                    latPt=latitude;
+                    lonPt=longitude;
                     updateAddressUI(location);
 
                     // String a=latitude.t
@@ -351,6 +510,7 @@ public class AraHomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
+        handler.removeCallbacks(updateTimeRunnable);
     }
 
     private void stopLocationUpdates() {
@@ -479,4 +639,8 @@ public class AraHomeActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onItemChoosed(Object selectedItem, int position) {
+
+    }
 }

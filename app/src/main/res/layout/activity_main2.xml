@@ -124,6 +124,7 @@
         app:layout_constraintTop_toBottomOf="@id/divide_one"
         android:layout_marginTop="10dp"
         android:textSize="18sp"
+        android:textStyle="bold"
         android:layout_marginStart="10dp"
         android:text="Punch History"/>
 
