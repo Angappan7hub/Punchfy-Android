@@ -39,5 +39,4 @@ public interface WebService {
     Call<EmpLog> postEmpLog(@Body PostEmpLog postEmpLog, @Path("branchId") long branchId);
 
 
-
 }
